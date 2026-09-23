@@ -22,7 +22,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(graph), 5)
         self.assertEqual(f.loc[4, 'role'], 'peripheral')
         self.assertTrue(f.loc[4, 'truncated_by_depth'])
-        self.assertEqual(f.loc[3, 'role'], 'peripheral')  # A single 9,000 KZT receipt is below the terminal minimum.
+        self.assertEqual(f.loc[3, 'role'], 'peripheral')  # Одного поступления на 9 000 ₸ недостаточно для terminal.
         self.assertEqual(f.loc[2, 'role'], 'transit')
         self.assertEqual(f.loc[2, 'outgoing_with_recent_incoming'], 1)
         self.assertEqual(f.loc[5, 'priority_score'], 0)
@@ -77,7 +77,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual({n['gid'] for n in payload['nodes']}, {str(offset + i) for i in range(1, 6)})
             self.assertTrue(all(isinstance(e['src'], str) and isinstance(e['dst'], str) for e in payload['edges']))
             self.assertTrue(all(isinstance(n['gid'], str) for n in payload['top']))
-            # Quoted decimal strings preserve all digits at the export boundary.
+            # 18-значный gid записываем в кавычках, без округления.
             self.assertTrue((Path(tmp) / 'out/nodes_roles.csv').read_text().splitlines()[1].startswith(f'"{offset + 1}",'))
 
     def test_role_export_is_separate_from_debug_metrics(self):
@@ -93,7 +93,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(set(roles.columns) & set(debug.columns), {'gid'})
             merged = roles.merge(debug, on='gid', validate='one_to_one').set_index('gid')
             self.assertEqual(set(merged.index), {node['gid'] for node in payload['nodes']})
-            # Every non-layout field exposed by the viewer survives the CSV split.
+            # Метрики графа должны сохраниться в CSV, кроме координат отрисовки.
             for node in payload['nodes']:
                 for column, value in node.items():
                     if column in {'gid', 'x', 'y'}:

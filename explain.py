@@ -1,4 +1,3 @@
-"""Explain any exported gid without recalculating the network."""
 import argparse
 from pathlib import Path
 

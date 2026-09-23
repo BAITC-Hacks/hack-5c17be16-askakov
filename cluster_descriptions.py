@@ -1,4 +1,3 @@
-"""Cluster scenarios grounded in observed internal directed transfers."""
 from explanations import amount
 from settings import CONFIG
 

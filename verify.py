@@ -1,4 +1,4 @@
-"""Acceptance checks on newly generated outputs, not stale CSV files."""
+"""Приёмка с пересчётом из Parquet в пустую папку."""
 import argparse
 import json
 import subprocess

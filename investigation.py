@@ -1,12 +1,11 @@
-"""Evidence for inspecting directed paths and individual transfers."""
 from collections import deque
 
 
 def seed_paths(graph, seeds, max_hops=4):
-    """One deterministic shortest path per seed and target, without cycles.
+    """По одному кратчайшему пути от каждого seed.
 
-    Paths describe connectivity over the whole period, not a temporal money trace.
-    A seed is not counted as reaching itself, matching the seed_reach metric.
+    Порядок операций не учитываем; путь показывает только связи за период.
+    Сам seed в свою достижимость не входит.
     """
     result = {str(gid): [] for gid in graph}
     for seed in sorted(seeds):
@@ -30,7 +29,7 @@ def seed_paths(graph, seeds, max_hops=4):
 
 
 def edge_details(edges, transactions):
-    """Keep every observed operation, including duplicates on the same date."""
+    """Операции по каждой связи. Совпадение даты и суммы не считаем дублем."""
     grouped = {}
     ordered = transactions.sort_values(['src', 'dst', 'date', 'sum_kzt'], kind='stable')
     for row in ordered.itertuples(index=False):

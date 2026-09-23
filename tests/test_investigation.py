@@ -12,10 +12,10 @@ class InvestigationTests(unittest.TestCase):
         graph.add_node(7)
         paths = seed_paths(graph, [1, 7])
         self.assertEqual(paths['5'], [['1', '2', '3', '4', '5']])
-        self.assertEqual(paths['6'], [])  # Five transitions are outside the limit.
-        self.assertEqual(paths['8'], [])  # Incoming edge cannot be followed backwards.
-        self.assertEqual(paths['1'], [])  # A cycle is not another seed source.
-        self.assertEqual(paths['7'], [])  # Isolated seeds are preserved.
+        self.assertEqual(paths['6'], [])  # Пять переходов — уже за пределами выборки.
+        self.assertEqual(paths['8'], [])  # Против направления перевода идти нельзя.
+        self.assertEqual(paths['1'], [])  # Путь от seed к самому себе не считаем.
+        self.assertEqual(paths['7'], [])  # Изолированный seed остаётся в результате.
 
     def test_ties_and_multiple_seeds_are_deterministic(self):
         edges = [(1, 3), (3, 4), (1, 2), (2, 4), (5, 4), (5, 1)]

@@ -1,4 +1,4 @@
-"""Preserve identifier text at CSV boundaries (CSV itself has no dtype metadata)."""
+"""CSV не хранит типы, поэтому gid читаем явно как строку."""
 import csv
 
 import pandas as pd

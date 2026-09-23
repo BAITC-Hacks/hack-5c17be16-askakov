@@ -1,6 +1,5 @@
 'use strict';
 
-// Path and edge inspection state. Identifiers remain decimal strings everywhere.
 let viewMode = 'neighbors', activePath = [], selectedEdge = null;
 let edgeByKey = new Map(), drawnEdges = [];
 const edgeKey = edge => `${edge.src}:${edge.dst}`;
@@ -84,8 +83,7 @@ function bindTransfers(container) {
 function showTransfer(key) {
   const edge = edgeByKey.get(key);
   if (!edge) return;
-  // A reverse transfer or a sidebar operation may be outside the displayed path.
-  // Reveal its endpoints before highlighting it on the graph.
+  // Связь может лежать вне выбранного пути. Сначала показываем её узлы.
   if (!edges.some(item => edgeKey(item) === key)) {
     if (selected !== edge.src && selected !== edge.dst) select(edge.dst);
     else showNeighbors();
@@ -112,7 +110,7 @@ function edgeCurve(edge) {
   const source = byId.get(edge.src), target = byId.get(edge.dst);
   const a = coordinates(source), b = coordinates(target);
   if (edge.src === edge.dst) {
-    // Cubic loop, above the node; direction follows the order of the samples.
+    // Самоперевод рисуем петлёй над узлом.
     const r = radius(source), start = {x: a.x + r * .7, y: a.y - r * .7};
     const end = {x: a.x - r * .7, y: a.y - r * .7};
     return Array.from({length: 21}, (_, index) => {
@@ -131,7 +129,7 @@ function edgeCurve(edge) {
 
 function drawEdges() {
   drawnEdges = [];
-  // Selected edge is painted last so its direction remains visible.
+  // Выбранную связь рисуем поверх остальных.
   const ordered = [...edges].sort((a, b) => Number(edgeKey(a) === selectedEdge) - Number(edgeKey(b) === selectedEdge));
   for (const edge of ordered) {
     const key = edgeKey(edge), points = edgeCurve(edge);

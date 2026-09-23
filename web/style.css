@@ -1,4 +1,4 @@
-/* Self-hosted fonts (Manrope, IBM Plex Mono) — no network at runtime. */
+/* Шрифты лежат локально, интернет для загрузки не нужен. */
 @font-face{font-family:'Manrope';font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/manrope-600-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
 @font-face{font-family:'Manrope';font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/manrope-600-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
 @font-face{font-family:'Manrope';font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/manrope-700-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
@@ -19,7 +19,7 @@
   --border-strong:rgba(255,255,255,.14);
   --text:#eef2f5;
   --muted:#8b98a3;
-  --muted-2:#5f7280;
+  --muted-2:#8193a1;
   --accent:#7fe28a;
   --accent-ink:#0d2012;
   --warn:#f0b768;
@@ -47,25 +47,23 @@ a:hover{color:#a6f2ac}
 [hidden]{display:none!important}
 button:disabled,select:disabled{opacity:.45;cursor:default}
 
-/* Header */
 header{height:84px;padding:0 36px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .brand{display:flex;gap:13px;align-items:center;font-size:28px;color:var(--accent)}
 .brand span{font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:-.3px;color:var(--text)}
 .brand small{display:block;font-size:8px;font-weight:700;letter-spacing:2.4px;margin-top:5px;color:var(--muted-2)}
 
-/* Hero / intro */
 main{max-width:1920px;margin:auto;padding:32px 36px}
 .intro{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;flex-wrap:wrap;margin-bottom:28px}
 .eyebrow{color:var(--accent);letter-spacing:2.6px;font-size:10px;font-weight:700}
 h1{font-family:var(--font-display);font-size:36px;font-weight:700;letter-spacing:-1.1px;line-height:1.08;margin:14px 0}
 p{color:var(--muted);line-height:1.6;margin:0}
+.data-period{margin-top:9px;font-size:12px;color:var(--muted-2)}
 .exports{position:relative;z-index:3}
 .exports summary{list-style:none;display:flex;align-items:center;gap:9px;background:var(--accent);color:var(--accent-ink);padding:14px 20px;border-radius:10px;font-weight:800;font-size:13px;box-shadow:0 14px 32px -14px rgba(127,226,138,.5)}
-.exports>div{position:absolute;right:0;min-width:250px;margin-top:8px;border:1px solid var(--border);background:var(--panel);border-radius:10px;padding:8px}
+.exports>div{position:absolute;left:0;right:0;margin-top:8px;border:1px solid var(--border);background:var(--panel);border-radius:10px;padding:8px}
 .exports a{display:block;padding:10px;border-radius:6px}
 .exports a:hover{background:rgba(255,255,255,.05)}
 
-/* Stat cards */
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
 .stat{background:var(--panel);border:1px solid var(--border);padding:20px 22px;border-radius:14px;position:relative;overflow:hidden}
 .stat::before{content:"";position:absolute;top:0;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,rgba(127,226,138,.5),transparent)}
@@ -73,13 +71,12 @@ p{color:var(--muted);line-height:1.6;margin:0}
 .stat strong{font-family:var(--font-display);display:block;font-size:27px;font-weight:700;letter-spacing:-.6px;margin:13px 0 5px}
 .stat small{color:var(--muted-2);font-size:10.5px}
 
-/* Notice banner */
 .notice{display:flex;gap:12px;align-items:flex-start;padding:15px 18px;margin:20px 0;border:1px solid rgba(240,183,104,.28);background:rgba(240,183,104,.055);border-radius:12px;color:var(--warn)}
 .notice>span{flex-shrink:0;margin-top:2px}
 .notice p{font-size:12px;color:var(--warn-text)}
 .notice strong{color:#e6cd9e;font-weight:700}
 
-/* Workspace layout */
+/* Основная сетка */
 .workspace{display:grid;grid-template-columns:265px minmax(360px,1fr) 300px;gap:16px;align-items:stretch}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden}
 .panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:19px 18px 10px}
@@ -87,29 +84,37 @@ h2{font-family:var(--font-display);font-size:14px;font-weight:700;margin:0}
 .badge{font-size:9px;letter-spacing:1px;background:rgba(127,226,138,.14);color:var(--accent);border-radius:5px;padding:5px 8px;font-weight:800}
 .section-note{font-size:11px;color:var(--muted-2);padding:0 18px 15px}
 
-/* Priority ranking */
+/* Топ узлов */
 .rank-list{height:551px;overflow:auto}
-.rank-item{border:0;border-top:1px solid rgba(255,255,255,.05);width:100%;display:flex;gap:11px;text-align:left;align-items:center;background:transparent;color:var(--text);padding:14px 16px}
+.rank-item{border:0;border-top:1px solid rgba(255,255,255,.05);width:100%;display:grid;grid-template-columns:17px minmax(0,1fr) 44px;gap:6px 11px;text-align:left;align-items:center;background:transparent;color:var(--text);padding:14px 16px}
 .rank-item:hover,.rank-item.selected{background:rgba(127,226,138,.06)}
-.rank-number{font-family:var(--font-mono);color:var(--muted-2);font-size:11px;width:17px}
-.rank-info{flex:1;min-width:0}
-.rank-info strong{font-family:var(--font-mono);font-size:11.5px;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rank-info small{display:block;margin-top:6px;font-size:10px;font-weight:700}
-.rank-score{font-family:var(--font-mono);color:var(--accent);font-size:12px;font-weight:600}
-.score-bar{height:3px;background:#1a2119;margin-top:7px;width:44px;border-radius:2px;overflow:hidden}
+.rank-number{grid-column:1;grid-row:1;font-family:var(--font-mono);color:var(--muted-2);font-size:11px;width:17px}
+.rank-info{display:contents}
+.rank-info strong{grid-column:2/-1;grid-row:1;min-width:0;font-family:var(--font-mono);font-size:11.5px;font-weight:500;display:block;overflow-wrap:anywhere}
+.rank-info small{grid-column:2;grid-row:2;display:block;font-size:10px;font-weight:700}
+.rank-score{grid-column:3;grid-row:2;font-family:var(--font-mono);color:var(--accent);font-size:12px;font-weight:600;text-align:right}
+.score-bar{display:block;height:3px;background:#1a2119;margin-top:7px;width:44px;border-radius:2px;overflow:hidden}
 .score-bar span{height:100%;display:block;background:var(--accent)}
 .muted{font-size:10px;color:var(--muted-2)}
 
-/* Toolbar / inputs */
 .toolbar{display:flex;gap:8px;padding:10px 14px;flex-wrap:wrap}
 .toolbar form{display:flex;flex:1;min-width:160px;gap:5px}
-input,select,button{border:1px solid var(--border-strong);background:#161d24;color:var(--text);border-radius:8px;padding:9px 10px;font-size:11.5px}
+input,select,button{border:1px solid var(--border-strong);background:#161d24;color:var(--text);border-radius:8px;padding:9px 10px;font-size:11.5px;line-height:1.2;height:34px}
 input{min-width:60px;width:100%;background:#0b0f13}
 button:hover{border-color:rgba(127,226,138,.4)}
-select{max-width:140px}
+select{
+  max-width:140px;
+  -webkit-appearance:none;
+  appearance:none;
+  padding-right:26px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%238b98a3' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 9px center;
+  background-size:10px;
+}
 #search-message,#path-message{font-size:11px;color:var(--warn);padding:0 15px;min-height:17px}
 
-/* Graph canvas */
+/* Граф */
 .canvas-wrap{height:467px;position:relative;border-radius:12px;margin:0 14px;overflow:hidden;
   background-color:var(--panel-2);
   background-image:radial-gradient(ellipse at 50% 45%,#141c22 0,var(--panel-2) 75%),
@@ -123,7 +128,7 @@ canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
 .legend span{font-size:10px;color:#9aa7b0;display:flex;align-items:center;gap:6px}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
-/* Node detail card */
+/* Карточка узла */
 .detail{padding:22px;overflow:auto;max-height:638px}
 .detail-eyebrow{font-size:9.5px;letter-spacing:1.5px;color:var(--muted-2);font-weight:700}
 .detail h3{font-family:var(--font-mono);overflow-wrap:anywhere;font-size:18px;font-weight:600;margin:14px 0 12px}
@@ -138,7 +143,7 @@ canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
 .connections button span{float:right;color:var(--muted-2);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .empty{color:var(--muted);line-height:1.6;padding:25px 0}
 
-/* Clusters table */
+/* Кластеры */
 .clusters{margin-top:20px}
 .table-scroll{max-height:300px;overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:11px;text-align:left}
@@ -188,7 +193,7 @@ footer{display:flex;justify-content:space-between;margin-top:25px;font-size:9px;
   footer{gap:20px;line-height:1.7}
 }
 
-/* Investigation controls and transaction evidence. */
+/* Пути от seed и операции по связи */
 .path-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 14px 12px;border-bottom:1px solid var(--border)}
 .path-controls label{font-size:10px;color:var(--muted-2)}
 .path-controls select{flex:1;min-width:140px;max-width:none}

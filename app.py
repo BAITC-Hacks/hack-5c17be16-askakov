@@ -1,4 +1,4 @@
-"""Local-only web server; rebuild the analysis on every launch."""
+"""Локальный сервер. При старте пересчитывает выгрузки."""
 import argparse
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer

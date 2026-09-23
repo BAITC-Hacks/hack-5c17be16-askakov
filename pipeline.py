@@ -1,4 +1,4 @@
-"""Reproducible, explainable analysis of the observed transaction network."""
+"""Расчёт ролей, кластеров и приоритета проверки."""
 import argparse
 import json
 import time
@@ -61,7 +61,7 @@ def qualifies_coordinator(row):
 
 
 def coordinator_features(graph, features):
-    """Use stable base-role anchors to avoid circular role confirmation."""
+    """Исключаем взаимное подтверждение ролей между кандидатами в координаторы."""
     base = {gid: ('distributor' if row.out_deg >= CONFIG['roles']['distributor_min_recipients'] else 'consolidator' if row.in_deg >= CONFIG['roles']['consolidator_min_payers'] else 'other')
             for gid, row in features.iterrows()}
     seeds = features.is_seed.to_dict()
@@ -114,7 +114,7 @@ def analyze(nodes, edges, tx):
         features[column] = pd.Series(dict(values))
     features['cluster_id'] = pd.Series(cluster_map)
     features['pagerank'] = pd.Series(nx.pagerank(graph, weight='sum_kzt'))
-    # Hop-based structural bridging: amounts are not distances.
+    # Расстояние — число переходов. Сумма перевода здесь не подходит.
     features['betweenness'] = pd.Series(nx.betweenness_centrality(graph, k=min(CONFIG['graph']['betweenness_samples'], len(graph)), seed=CONFIG['graph']['random_seed'], weight=None))
     features['seed_reach'] = 0
     for seed in nodes.loc[nodes.is_seed, 'gid']:
@@ -127,7 +127,7 @@ def analyze(nodes, edges, tx):
     features['external_funds'] = ((features.out_kzt >= CONFIG['external_funds']['min_out_kzt'])
         & (features.out_kzt > CONFIG['external_funds']['max_pass_through'] * features.in_kzt))
     features['ratio_usable'] = (~features.is_seed) & (~features.truncated_by_depth) & (features.in_kzt > 0) & (features.pass_through <= CONFIG['roles']['transit_max_pass_through'])
-    # Temporal proximity only: these are not proven matches of specific funds.
+    # Близость дат не доказывает, что дальше ушли те же деньги.
     incoming_dates = {gid: np.sort(group.date.to_numpy(dtype='datetime64[ns]')) for gid, group in tx.groupby('dst')}
     proximity = {}
     for gid, group in tx.groupby('src'):
@@ -149,7 +149,7 @@ def analyze(nodes, edges, tx):
     features[['role', 'role_score', 'evidence']] = rows
     features['role_score'] = features.role_score.astype(float)
     features['role_rule'] = features.role.map(ROLE_RULES)
-    # Percentiles are computed among active nodes; isolated nodes have zero priority.
+    # Изоляты не участвуют в перцентилях и получают нулевой приоритет.
     active = (features.in_deg + features.out_deg) > 0
     priority = pd.Series(0.0, index=features.index)
     weights = CONFIG['priority']['weights']
@@ -173,7 +173,7 @@ def analyze(nodes, edges, tx):
     for name, values in [('turnover', features.in_kzt + features.out_kzt), ('degree', features.in_deg + features.out_deg)]:
         features[f'{name}_higher_than_pct'] = 0
         if active.any():
-            # Strictly smaller values; ties do not inflate the comparison.
+            # Для текста «больше, чем у N%» считаем только строго меньшие значения.
             features.loc[active, f'{name}_higher_than_pct'] = np.floor((values[active].rank(method='min') - 1) / active.sum() * 100).astype(int)
     features['priority_why'] = features.apply(describe_priority, axis=1)
     features = features.reset_index()
@@ -188,7 +188,7 @@ def analyze(nodes, edges, tx):
 
 
 def classify(row):
-    """Ordered heuristic rules. Scores measure rule support, not guilt/probability."""
+    """Первая подходящая роль. Скор отражает силу признаков, а не вероятность нарушения."""
     score = CONFIG['role_scores']
     if qualifies_coordinator(row):
         return 'coordinator', score['coordinator_base'] + (score['coordinator_bridge_bonus'] * row.bridge_percentile if row.betweenness > 0 else 0)
@@ -221,7 +221,7 @@ def run(data_dir='data', out_dir='output'):
     top['rank'] = range(1, len(top) + 1)
     top['why'] = top.priority_why
     write_csv(top[['rank', 'gid', 'role', 'priority_score', 'why']], out / 'top_nodes.csv')
-    # Precompute layout once; browser performs only rendering and interaction.
+    # Координаты считаем здесь, чтобы браузеру не пришлось раскладывать граф.
     layout = nx.spring_layout(undirected, seed=CONFIG['graph']['random_seed'], iterations=CONFIG['graph']['layout_iterations'], weight=None)
     features['x'] = features.gid.map(lambda gid: round(float(layout[gid][0]), 6))
     features['y'] = features.gid.map(lambda gid: round(float(layout[gid][1]), 6))
@@ -232,7 +232,7 @@ def run(data_dir='data', out_dir='output'):
                 period_start=str(tx.date.min().date()) if len(tx) else None,
                 period_end=str(tx.date.max().date()) if len(tx) else None,
                 elapsed_seconds=round(time.perf_counter() - started, 2))
-    # int64 gids exceed JavaScript's safe integer range; JSON uses decimal strings.
+    # 18-значный gid теряет точность в JS Number, поэтому передаём строку.
     web_nodes, web_top = features.copy(), top[['gid', 'rank', 'why']].copy()
     web_nodes['gid'] = web_nodes.gid.astype(str)
     web_top['gid'] = web_top.gid.astype(str)

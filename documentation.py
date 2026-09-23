@@ -1,4 +1,4 @@
-"""Keep the README's analytical rules in sync with the versioned config."""
+"""Обновление правил в README из config.json."""
 import argparse
 from pathlib import Path
 

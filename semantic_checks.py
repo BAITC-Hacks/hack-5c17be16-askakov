@@ -1,4 +1,4 @@
-"""Independent semantic acceptance checks grounded in the raw directed edges."""
+"""Сверка выгрузок с исходными переводами."""
 import re
 
 import numpy as np
@@ -8,7 +8,7 @@ from settings import CONFIG
 
 
 def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
-    """Check financial rules independently of classify/formatter implementations."""
+    """Проверяем правила отдельно от classify и форматирования текстов."""
     def require(condition, message):
         if not condition:
             raise ValueError(f'Semantic audit: {message}')
@@ -60,8 +60,8 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
             require(valid_in or valid_out, f'coordinator {gid} lacks final-role flow witnesses')
             continue
 
-        # Conservative coordinator selection need not promote every potential
-        # candidate; every remaining node must obey the ordered local rules.
+        # Не каждый кандидат становится координатором: часть исключается при выборе хабов.
+        # Остальные роли проверяем в порядке их назначения.
         ratio = row.out_kzt / row.in_kzt if row.in_kzt else None
         usable = not seeds[gid] and not truncated[gid] and ratio is not None
         if row.out_deg >= r['distributor_min_recipients']:
@@ -80,8 +80,7 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
         if row.out_deg >= r['distributor_large_fanout']:
             require(role == 'distributor', f'large fan-out {gid} was not assigned distributor')
 
-    # Recompute average percentiles with sorted arrays, without pandas.rank or
-    # cached base_priority_score/seed_priority_multiplier values.
+    # Перцентили считаем через сортировку, чтобы не повторять pandas.rank из пайплайна.
     active = (totals.in_deg + totals.out_deg) > 0
     base = np.zeros(len(raw))
     values_by_signal = {
@@ -136,7 +135,7 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
         require(row.why == observed.loc[row.gid, 'priority_why'], f'{row.gid}: exported why differs from debug')
         require(row.role == roles[row.gid], f'{row.gid}: wrong role in top')
 
-    # A wholly truncated community must not receive a claimed financial purpose.
+    # По кластеру на границе выгрузки назначение средств неизвестно.
     for cid, group in observed.groupby('cluster_id'):
         if truncated.reindex(group.index).all():
             hypothesis = clusters.loc[clusters.cluster_id == cid, 'hypothesis']

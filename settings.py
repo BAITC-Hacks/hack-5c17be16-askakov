@@ -1,4 +1,3 @@
-"""Shared analytical parameters and descriptions from one versioned config."""
 import json
 from pathlib import Path
 

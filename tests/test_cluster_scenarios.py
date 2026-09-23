@@ -1,4 +1,4 @@
-"""Cluster descriptions must be grounded in directed, internal transfers."""
+"""Сценарии кластеров по переводам между их участниками."""
 
 import re
 import unittest
@@ -15,7 +15,7 @@ class ClusterScenarioTests(unittest.TestCase):
         return str(100000000000000000 + suffix)
 
     def fixture(self, rows, transfers):
-        """Rows: (id suffix, final role, seed, boundary); edges may be external."""
+        """Строка: (суффикс gid, роль, seed, обрыв); рёбра могут вести наружу."""
         subset = pd.DataFrame([
             dict(gid=self.gid(suffix), role=role, is_seed=seed, truncated_by_depth=boundary)
             for suffix, role, seed, boundary in rows
@@ -87,7 +87,7 @@ class ClusterScenarioTests(unittest.TestCase):
         rows = [(1, 'peripheral', True, False)] + [
             (suffix, 'consolidator', False, False) for suffix in (10, 11, 12, 13)
         ]
-        # An enormous external incoming must not bring 13 into the internal top.
+        # Большой перевод извне не должен поднять узел 13 во внутреннем топе.
         transfers = [(1, 10, 40000.), (1, 11, 30000.), (1, 12, 30000.),
                      (1, 13, 20000.), (90, 13, 1000000000.)]
         subset, graph, members = self.fixture(rows, transfers)

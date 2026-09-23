@@ -1,4 +1,4 @@
-"""Record an audit step, rerun the pipeline and report semantic changes."""
+"""Сравнение кода и выгрузок до и после правки."""
 import argparse
 import difflib
 import json

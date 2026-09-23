@@ -1,4 +1,4 @@
-"""Analyst-facing priority and mixed-role regressions, using synthetic flows."""
+"""Приоритет и совмещение ролей на небольших графах."""
 
 import unittest
 from unittest.mock import patch
@@ -80,8 +80,8 @@ class PriorityRevisionTests(unittest.TestCase):
         self.assertNotIn('уже известен', actual.priority_why.lower())
 
     def test_seed_explanation_distinguishes_all_six_roles(self):
-        # Some seed/role pairs are currently excluded by classification, but the
-        # formatter still must honor the priority policy if given such a row.
+        # Проверяем и сочетания, которые классификатор сейчас не назначает:
+        # текст должен соответствовать переданной роли и множителю.
         for role in ('consolidator', 'distributor', 'coordinator', 'peripheral', 'terminal', 'transit'):
             with self.subTest(role=role):
                 is_hub = role in {'consolidator', 'distributor', 'coordinator'}
@@ -145,9 +145,8 @@ class PriorityRevisionTests(unittest.TestCase):
         self.assertLessEqual(len(row.evidence), CONFIG['output']['evidence_max_chars'])
 
     def test_sink_consolidator_receives_full_degree_component_without_betweenness(self):
-        # Nine active nodes: eight equal payers and their common recipient.
-        # The recipient is highest on all four weighted signals, even though
-        # its zero outgoing degree makes its betweenness exactly zero.
+        # Восемь одинаковых плательщиков переводят одному получателю.
+        # Он первый по четырём взвешенным метрикам, но посредничество нулевое.
         transfers = [(payer, 1, 100000.) for payer in range(10, 18)]
         row = self.features(transfers, seeds=(10,)).loc[1]
         self.assertEqual(row.role, 'consolidator')
@@ -166,8 +165,8 @@ class PriorityRevisionTests(unittest.TestCase):
     def test_tied_percentiles_and_seed_penalty_apply_to_the_component_sum(self):
         transfers = [(payer, 1, 100000.) for payer in range(10, 18)]
         row = self.features(transfers, seeds=(10,)).loc[10]
-        # Each payer ties at ranks 1..8 out of 9: mean rank 4.5 / 9 = .5.
-        # Seed reach and betweenness are zero and receive no tied-rank credit.
+        # Плательщики делят места 1–8 из 9: средний ранг 4,5 / 9 = 0,5.
+        # Нулевые seed_reach и betweenness не получают баллов за равенство рангов.
         expected = {
             'turnover': (.5, .125), 'seed_reach': (0., 0.),
             'betweenness': (0., 0.), 'degree': (.5, .2), 'pagerank': (.5, .05),

@@ -1,4 +1,4 @@
-"""Semantic examples for the audit rules, independent of the supplied dataset."""
+"""Правила ролей на примерах, независимых от основной выборки."""
 
 import tempfile
 import unittest
@@ -35,7 +35,7 @@ class AuditSemanticsTests(unittest.TestCase):
     def coordinator_incoming(self, count=2, other_incoming=80000., outgoing=15000.):
         transfers = []
         for hub in range(10, 10 + count):
-            # The payers have no incoming edges, so these hubs cannot coordinate.
+            # У плательщиков нет входящих: эти хабы не проходят правило coordinator.
             transfers.extend((hub * 100 + payer, hub, 10000.) for payer in range(5))
             transfers.append((hub, 1, 20000. / count))
         transfers.extend((payer, 1, other_incoming / 2) for payer in (2, 3))
@@ -45,7 +45,7 @@ class AuditSemanticsTests(unittest.TestCase):
     def coordinator_outgoing(self, count=2, other_outgoing=80000., incoming=15000.):
         transfers = []
         for hub in range(10, 10 + count):
-            # Eight leaf recipients make each hub an unambiguous distributor.
+            # Восемь конечных получателей дают каждому хабу роль distributor.
             transfers.extend((hub, hub * 100 + recipient, 5000.) for recipient in range(8))
             transfers.append((1, hub, 20000. / count))
         transfers.extend((1, recipient, other_outgoing / 2) for recipient in (2, 3))
@@ -69,7 +69,7 @@ class AuditSemanticsTests(unittest.TestCase):
                     self.assertEqual(features.loc[str(hub), 'role'], 'distributor')
 
     def test_coordinator_share_uses_the_corresponding_direction(self):
-        # A much larger opposite-direction flow must not dilute the qualifying 20%.
+        # Поток в обратную сторону не входит в знаменатель для порога 20%.
         incoming = self.features(self.coordinator_incoming(outgoing=1000000.))
         outgoing = self.features(self.coordinator_outgoing(incoming=1000000.))
         self.assertEqual(incoming.loc['1', 'role'], 'coordinator')
@@ -87,7 +87,7 @@ class AuditSemanticsTests(unittest.TestCase):
         self.assertNotEqual(features.loc['1', 'role'], 'coordinator')
 
     def test_seed_incoming_consolidator_is_allowed(self):
-        # The non-seed restriction on neighbors applies to outgoing hubs only.
+        # Seed исключаем только среди хабов, которым узел отправляет деньги.
         features = self.features(self.coordinator_incoming(), seeds=(10,))
         self.assertEqual(features.loc['10', 'role'], 'consolidator')
         self.assertEqual(features.loc['1', 'role'], 'coordinator')

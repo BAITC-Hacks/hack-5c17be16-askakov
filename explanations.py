@@ -1,4 +1,3 @@
-"""Human-readable hypotheses; no raw centrality values in analyst explanations."""
 from settings import CONFIG
 
 
@@ -49,7 +48,7 @@ def describe_role(row, role):
         flags += ' Источник средств вне выборки.'
     elif row.is_seed:
         flags += ' Входящие исходного клиента неполны.'
-    # The secondary clue already names one side's count; avoid repeating it.
+    # Одно из чисел уже есть во вторичном признаке.
     if mixed:
         if role == 'consolidator':
             flow = f" {counted(row.in_deg, 'плательщик', 'плательщика', 'плательщиков')}: {amount(row.in_kzt)}; отдано {amount(row.out_kzt)}."
@@ -58,7 +57,7 @@ def describe_role(row, role):
     full = prefix + secondary + flow + proof + onward + flags
     if len(full) <= CONFIG['output']['evidence_max_chars']:
         return full
-    # Keep the qualifying role proof and limitations; shorten the flow wording.
+    # Сокращаем суммы и количества, сохраняя основания роли и оговорки.
     compact = f' Получено {amount(row.in_kzt)} от {int(row.in_deg)}; отдано {amount(row.out_kzt)} для {int(row.out_deg)}.'
     text = prefix + secondary + compact + proof + flags
     if len(text) > CONFIG['output']['evidence_max_chars']:

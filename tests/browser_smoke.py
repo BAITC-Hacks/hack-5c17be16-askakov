@@ -1,4 +1,4 @@
-"""Optional UI integration check: pip install playwright; uses installed Chrome."""
+"""Проверка интерфейса в установленном Chrome; нужен pip install playwright."""
 from pathlib import Path
 import csv
 import io
@@ -17,6 +17,13 @@ with sync_playwright() as p:
     page.wait_for_selector('.rank-item')
     assert page.locator('.rank-item').count() == 50
     payload = page.request.get('http://127.0.0.1:8000/api/graph').json()
+    for date in (payload['meta']['period_start'], payload['meta']['period_end']):
+        assert '.'.join(reversed(date.split('-'))) in page.locator('#period').inner_text()
+    # Gid из проверки приоритетов: поиск не должен терять последние цифры.
+    for gid in ('100000003684369100', '100000005382566100', '100000004962193100', '100000004486525100'):
+        page.locator('#gid').fill(gid)
+        page.locator('#search button').click()
+        assert page.locator('#detail h3').inner_text() == f'Клиент {gid}'
     for node in random.Random(42).sample(payload['nodes'], 3):
         page.locator('#gid').fill(node['gid'])
         page.locator('#search button').click()
@@ -62,7 +69,6 @@ with sync_playwright() as p:
             assert len(exported) == len(payload['nodes'])
             assert all(exported[node['gid']]['role'] == node['role'] for node in payload['nodes'])
     assert page.request.get('http://127.0.0.1:8000/../requirements.txt').status == 404
-    # Inspect an actual four-transition path and switch to another seed.
     target, paths = next((gid, paths) for gid, paths in payload['seed_paths'].items()
                          if len(paths) > 1 and any(len(path) == 5 for path in paths))
     path_index = next(index for index, path in enumerate(paths) if len(path) == 5)
@@ -78,7 +84,7 @@ with sync_playwright() as p:
     assert 'не установлены' in page.locator('#path-summary').inner_text()
     page.screenshot(path=str(ROOT / 'output/path.png'), full_page=True)
 
-    # Click the visible edge itself, not only the alternative operation button.
+    # Попадание мышью в ребро проверяем отдельно от кнопки операций.
     point = page.evaluate('drawnEdges[0].points[8]')
     page.locator('#graph').click(position=point)
     page.wait_for_selector('#transfer-panel:not([hidden])')
@@ -113,7 +119,7 @@ with sync_playwright() as p:
         assert page.evaluate('selectedEdge') == reverse_key
         assert reverse_key in page.evaluate('drawnEdges.map(edge => edge.key)')
 
-    # An isolated seed must not acquire a made-up path to itself.
+    # У изолированного seed нет пути, в том числе к самому себе.
     isolated = next(n for n in payload['nodes'] if n['in_deg'] == n['out_deg'] == 0)
     page.locator('#gid').fill(isolated['gid'])
     page.locator('#search button').click()
@@ -128,6 +134,21 @@ with sync_playwright() as p:
     page.locator('#path-summary .path-hop').first.click()
     page.screenshot(path=str(ROOT / 'output/mobile.png'), full_page=True)
     assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+    # По обе стороны точек смены вёрстки gid и меню CSV должны помещаться целиком.
+    for viewport_width in (320, 360, 390, 720, 721, 768, 1024, 1150, 1151, 1440, 1600, 1920):
+        page.set_viewport_size({'width': viewport_width, 'height': 900})
+        page.evaluate('() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))')
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), viewport_width
+        assert page.locator('.rank-info strong').evaluate_all('elements => elements.every(e => e.scrollWidth <= e.clientWidth && /^\\d{18}$/.test(e.textContent))'), viewport_width
+        page.locator('.exports summary').click()
+        box = page.locator('.exports > div').bounding_box()
+        assert box['x'] >= 0 and box['x'] + box['width'] <= viewport_width, (viewport_width, box)
+        if viewport_width == 390:
+            with page.expect_download() as download:
+                page.locator('.exports a').first.click()
+            assert download.value.suggested_filename == 'nodes_roles.csv'
+            assert not download.value.failure()
+        page.locator('.exports summary').click()
     assert not errors, errors
-    print('Browser PASS: 3 arbitrary gids; four-hop directed path, seed switching, canvas edge click, exact transaction totals/dates, isolated seed, CSV and mobile layout; no JavaScript errors.')
+    print('Browser PASS: 3 arbitrary and 4 tracked gids; visible period; four-hop directed path, seed switching, canvas edge click, exact transaction totals/dates, isolated seed; CSV download; full gids and export menu at 12 widths (320–1920px); no JavaScript errors.')
     browser.close()
