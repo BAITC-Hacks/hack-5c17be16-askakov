@@ -117,8 +117,11 @@ select{
   background-position:right 9px center;
   background-size:10px;
 }
-.map-status{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 14px;min-height:17px;margin:9px 0 2px;font-size:10.5px;color:var(--muted-2)}
+.map-status{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 12px;min-height:17px;margin:9px 0 4px;font-size:10.5px;color:var(--muted-2)}
 #graph-count{font-family:var(--font-mono)}
+.data-period{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:rgba(16,22,28,.6);font-size:10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.data-period svg{flex-shrink:0}
+#search-message:empty{display:none}
 #search-message,#path-message{font-size:11px;color:var(--warn)}
 .canvas-wrap{flex:1;min-height:0;position:relative}
 canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
