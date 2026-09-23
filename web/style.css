@@ -201,6 +201,10 @@ footer{display:flex;justify-content:space-between;margin-top:4px;font-size:9px;l
   .clusters .muted{display:none}
   footer{gap:20px;line-height:1.7}
 }
+@media(max-width:380px){
+  .topbar{column-gap:12px}
+  .exports summary{font-size:12px;padding:12px 10px}
+}
 
 /* Пути от seed и операции по связи */
 .path-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 14px;flex-shrink:0}
