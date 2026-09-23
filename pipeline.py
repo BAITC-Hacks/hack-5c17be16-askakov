@@ -153,17 +153,22 @@ def analyze(nodes, edges, tx):
     active = (features.in_deg + features.out_deg) > 0
     priority = pd.Series(0.0, index=features.index)
     weights = CONFIG['priority']['weights']
-    signals = [(features.in_kzt + features.out_kzt, weights['turnover']), (features.seed_reach, weights['seed_reach']),
-               (features.betweenness, weights['betweenness']), (features.in_deg + features.out_deg, weights['degree']), (features.pagerank, weights['pagerank'])]
-    for values, weight in signals:
+    signals = {'turnover': features.in_kzt + features.out_kzt, 'seed_reach': features.seed_reach,
+               'betweenness': features.betweenness, 'degree': features.in_deg + features.out_deg,
+               'pagerank': features.pagerank}
+    for name, values in signals.items():
         ranks = values[active].rank(method='average', pct=True)
         ranks.loc[values[active] == 0] = 0
-        priority.loc[active] += weight * ranks
+        features[f'priority_percentile_{name}'] = ranks.reindex(features.index, fill_value=0.)
+        component = weights[name] * features[f'priority_percentile_{name}']
+        features[f'priority_component_{name}'] = component
+        priority += component
     features['base_priority_score'] = priority
     features['role_priority_multiplier'] = np.where(
         features.external_funds & (features.role == 'peripheral'),
         CONFIG['priority']['external_peripheral_multiplier'], 1.)
-    features['seed_priority_multiplier'] = np.where(features.is_seed, CONFIG['priority']['seed_multiplier'], 1.)
+    discount_seed = features.is_seed & features.role.isin(CONFIG['priority']['seed_discount_roles'])
+    features['seed_priority_multiplier'] = np.where(discount_seed, CONFIG['priority']['seed_multiplier'], 1.)
     features['priority_score'] = (priority * features.role_priority_multiplier * features.seed_priority_multiplier).round(6)
     for name, values in [('turnover', features.in_kzt + features.out_kzt), ('degree', features.in_deg + features.out_deg)]:
         features[f'{name}_higher_than_pct'] = 0

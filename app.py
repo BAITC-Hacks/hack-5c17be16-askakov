@@ -23,6 +23,8 @@ class Handler(BaseHTTPRequestHandler):
                   '/api/graph': (self.output_dir / 'graph.json', 'application/json; charset=utf-8')}
         for name in ('nodes_roles', 'clusters', 'top_nodes'):
             routes[f'/download/{name}.csv'] = (self.output_dir / f'{name}.csv', 'text/csv; charset=utf-8')
+        for font in (ROOT / 'web/fonts').glob('*.woff2'):
+            routes[f'/fonts/{font.name}'] = (font, 'font/woff2')
         path = urlparse(self.path).path
         if path not in routes:
             self.send_error(404)

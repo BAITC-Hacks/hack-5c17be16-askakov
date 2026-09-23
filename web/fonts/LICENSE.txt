@@ -1,0 +1,11 @@
+Fonts bundled in this directory (subset to Latin + Cyrillic, static weights):
+
+- Manrope (600, 700, 800) — designed by Mikhail Sharanda.
+  https://github.com/sharanda/manrope
+- IBM Plex Mono (400, 600) — designed by IBM / Bold Monday.
+  https://github.com/IBM/plex
+
+Both are distributed under the SIL Open Font License, Version 1.1.
+Full license text: https://openfontlicense.org
+
+Served locally so the viewer works without any network access at runtime.

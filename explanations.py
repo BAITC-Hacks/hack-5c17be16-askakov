@@ -22,6 +22,14 @@ def describe_role(row, role):
         'terminal': 'конечный получатель за период', 'peripheral': 'роль не определена',
     }[role]
     prefix = f'Гипотеза: {label}.'
+    mixed = (row.in_deg >= CONFIG['roles']['consolidator_min_payers']
+             and row.out_deg >= CONFIG['roles']['distributor_min_recipients'])
+    secondary = ''
+    if mixed:
+        if role == 'consolidator':
+            secondary = f" Также признаки раздачи: {counted(row.out_deg, 'получатель', 'получателя', 'получателей')}."
+        else:
+            secondary = f" Также признаки консолидации: {counted(row.in_deg, 'плательщик', 'плательщика', 'плательщиков')}."
     flow = f" {counted(row.in_deg, 'плательщик', 'плательщика', 'плательщиков')}: {amount(row.in_kzt)}; {counted(row.out_deg, 'получатель', 'получателя', 'получателей')}: {amount(row.out_kzt)}."
     proof = ''
     if role == 'coordinator':
@@ -41,12 +49,18 @@ def describe_role(row, role):
         flags += ' Источник средств вне выборки.'
     elif row.is_seed:
         flags += ' Входящие исходного клиента неполны.'
-    full = prefix + flow + proof + onward + flags
+    # The secondary clue already names one side's count; avoid repeating it.
+    if mixed:
+        if role == 'consolidator':
+            flow = f" {counted(row.in_deg, 'плательщик', 'плательщика', 'плательщиков')}: {amount(row.in_kzt)}; отдано {amount(row.out_kzt)}."
+        else:
+            flow = f" Получено {amount(row.in_kzt)}; {counted(row.out_deg, 'получатель', 'получателя', 'получателей')}: {amount(row.out_kzt)}."
+    full = prefix + secondary + flow + proof + onward + flags
     if len(full) <= CONFIG['output']['evidence_max_chars']:
         return full
     # Keep the qualifying role proof and limitations; shorten the flow wording.
     compact = f' Получено {amount(row.in_kzt)} от {int(row.in_deg)}; отдано {amount(row.out_kzt)} для {int(row.out_deg)}.'
-    text = prefix + compact + proof + flags
+    text = prefix + secondary + compact + proof + flags
     if len(text) > CONFIG['output']['evidence_max_chars']:
         raise ValueError('Evidence exceeds configured limit; do not silently truncate a qualification')
     return text
@@ -58,6 +72,9 @@ def describe_priority(row):
             f"По путям до {CONFIG['graph']['max_hops']} переходов связан с {counted(row.seed_reach, 'исходным клиентом', 'исходными клиентами', 'исходными клиентами')}.")
     if row.role_priority_multiplier < 1:
         text += f' Из-за неопределённой роли приоритет снижен на {1 - row.role_priority_multiplier:.0%}.'
-    if row.is_seed and row.seed_priority_multiplier < 1:
-        text += ' Клиент уже известен — приоритет снижен.'
+    if row.is_seed:
+        if row.role not in CONFIG['priority']['seed_discount_roles']:
+            text += ' Клиент уже известен правоохранителям, но является точкой сбора/раздачи — ключ к уровню выше.'
+        elif row.seed_priority_multiplier < 1:
+            text += ' Клиент уже известен — приоритет снижен.'
     return text

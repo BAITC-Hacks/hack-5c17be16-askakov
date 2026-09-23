@@ -41,7 +41,18 @@ def begin(folder):
     print(f'Baseline saved: {folder.relative_to(ROOT)}')
 
 
-def finish(folder, step, description):
+def positions(nodes, gids):
+    ordered = nodes.sort_values(['priority_score', 'gid'], ascending=[False, True])
+    eligible = ordered.loc[ordered.role != 'peripheral']
+    all_ranks = {gid: index for index, gid in enumerate(ordered.gid, 1)}
+    eligible_ranks = {gid: index for index, gid in enumerate(eligible.gid, 1)}
+    indexed = nodes.set_index('gid')
+    return {gid: dict(rank_all=all_ranks[gid], rank_eligible=eligible_ranks.get(gid),
+                      role=indexed.loc[gid, 'role'], score=float(indexed.loc[gid, 'priority_score']))
+            for gid in gids}
+
+
+def finish(folder, step, description, tracked=()):
     started = time.perf_counter()
     result = subprocess.run([sys.executable, str(ROOT / 'pipeline.py')], cwd=ROOT,
                             check=True, capture_output=True, text=True, timeout=300)
@@ -59,6 +70,9 @@ def finish(folder, step, description):
                    top20_peripheral=int((top.role == 'peripheral').sum()), top20_seed=int(top.is_seed.sum()),
                    entered=sorted(set(top.gid) - set(previous_top.gid)), left=sorted(set(previous_top.gid) - set(top.gid)),
                    top20=json.loads(top.to_json(orient='records', force_ascii=False)))
+    summary['top20_roles'] = {role: int((top.role == role).sum()) for role in roles}
+    summary['tracked_before'] = positions(before, tracked)
+    summary['tracked_after'] = positions(nodes, tracked)
     (folder / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2))
     old_sources = {path.relative_to(folder / 'before/source'): path for path in (folder / 'before/source').rglob('*') if path.is_file()}
     new_sources = {path.relative_to(ROOT): path for path in source_files()}
@@ -70,6 +84,12 @@ def finish(folder, step, description):
     (folder / 'changes.diff').write_text(''.join(diff))
     lines = [f'# Пункт {step}', '', description, '', f'Полный запуск: {elapsed} с.', '', '| Роль | До | После |', '|---|---:|---:|']
     lines += [f'| {role} | {row.before} | {row.after} |' for role, row in comparison.iterrows()]
+    if tracked:
+        lines += ['', 'Место среди всех узлов / место среди кандидатов без peripheral. Сортировка: priority_score ↓, gid ↑.', '', '| gid | Все: до → после | Кандидаты: до → после | Скор: до → после |', '|---|---|---|---|']
+        for gid in tracked:
+            old, new = summary['tracked_before'][gid], summary['tracked_after'][gid]
+            lines.append(f"| {gid} | {old['rank_all']} → {new['rank_all']} | {old['rank_eligible']} → {new['rank_eligible']} | {old['score']:.6f} → {new['score']:.6f} |")
+    lines += ['', 'Состав топ-20 по ролям: ' + ', '.join(f'{role} — {count}' for role, count in summary['top20_roles'].items()) + '.']
     lines += ['', f"Топ-20: peripheral — {summary['top20_peripheral']}; seed — {summary['top20_seed']}.", '', '| № | gid | Роль | Приоритет | Seed | why полностью |', '|---:|---|---|---:|---|---|']
     for row in top.itertuples(index=False):
         lines.append(f'| {row.rank} | {row.gid} | {row.role} | {row.priority_score:.6f} | {"да" if row.is_seed else "нет"} | {row.why} |')
@@ -81,6 +101,9 @@ def finish(folder, step, description):
     print(comparison.to_string())
     print(top[['rank', 'gid', 'role', 'priority_score', 'is_seed']].to_string(index=False))
     print(f"Топ-20: peripheral={summary['top20_peripheral']}, seed={summary['top20_seed']}; вошли={summary['entered']}; вышли={summary['left']}")
+    print('Роли в топ-20:', summary['top20_roles'])
+    for gid in tracked:
+        print(gid, summary['tracked_before'][gid], '→', summary['tracked_after'][gid])
 
 
 if __name__ == '__main__':
@@ -88,9 +111,10 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['begin', 'finish'])
     parser.add_argument('step', type=int)
     parser.add_argument('--changes', default='')
+    parser.add_argument('--track', nargs='*', default=[])
     args = parser.parse_args()
     folder = OUTPUT / 'audit' / f'step{args.step}'
     if args.action == 'begin':
         begin(folder)
     else:
-        finish(folder, args.step, args.changes)
+        finish(folder, args.step, args.changes, args.track)

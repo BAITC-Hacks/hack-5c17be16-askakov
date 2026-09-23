@@ -99,10 +99,13 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
             right = np.searchsorted(sorted_values, values, side='right')
             average_rank = (left + 1 + right) / 2
             percentile = np.where(active & (values > 0), average_rank / len(sorted_values), 0.)
+            require(np.allclose(percentile, observed[f'priority_percentile_{signal}'], rtol=0, atol=1e-12), f'wrong exported percentile {signal}')
+            require(np.allclose(p['weights'][signal] * percentile, observed[f'priority_component_{signal}'], rtol=0, atol=1e-12), f'wrong exported contribution {signal}')
             base += p['weights'][signal] * percentile
     role_factor = np.where(external & (observed.role == 'peripheral'),
                            p['external_peripheral_multiplier'], 1.)
-    seed_factor = np.where(raw.is_seed, p['seed_multiplier'], 1.)
+    discount_seed = raw.is_seed & observed.role.isin(p['seed_discount_roles'])
+    seed_factor = np.where(discount_seed, p['seed_multiplier'], 1.)
     expected_priority = np.round(base * role_factor * seed_factor, 6)
     require(np.allclose(base, observed.base_priority_score, rtol=0, atol=1e-12), 'base priority formula mismatch')
     require(np.array_equal(role_factor, observed.role_priority_multiplier), 'peripheral role multiplier mismatch')
@@ -119,7 +122,13 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
             require(forbidden.search(text) is None, f'{gid}: technical/raw wording in {label}')
         if external[gid]:
             require('источник средств вне выборки' in row.evidence.lower(), f'{gid}: missing external-source caveat')
-        if seeds[gid] and p['seed_multiplier'] < 1:
+        if row.in_deg >= r['consolidator_min_payers'] and row.out_deg >= r['distributor_min_recipients']:
+            secondary = 'также признаки раздачи' if row.role == 'consolidator' else 'также признаки консолидации'
+            require(secondary in row.evidence.lower().split('.')[1], f'{gid}: missing secondary clue immediately after hypothesis')
+        if seeds[gid] and row.role not in p['seed_discount_roles']:
+            require('уже известен правоохранителям, но является точкой сбора/раздачи — ключ к уровню выше' in row.priority_why.lower(), f'{gid}: missing seed-hub explanation')
+            require('приоритет снижен' not in row.priority_why.lower(), f'{gid}: hub seed incorrectly described as discounted')
+        elif seeds[gid] and p['seed_multiplier'] < 1:
             require('уже известен — приоритет снижен' in row.priority_why.lower(), f'{gid}: missing seed-priority explanation')
     require((top.role != 'peripheral').all(), 'peripheral present in top list')
     require(top.gid.is_unique and set(top.gid) <= set(raw.index), 'invalid top gids')
@@ -135,6 +144,15 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
                     'назначение не определить, нужна выгрузка следующего колена' in hypothesis.iloc[0],
                     f'cluster {cid}: missing next-hop limitation')
     first_twenty = top.sort_values('rank').head(20)
+    ordered = nodes.sort_values(['priority_score', 'gid'], ascending=[False, True]).copy()
+    ordered['rank_all'] = range(1, len(ordered) + 1)
+    target = p['consolidator_review_target']
+    collection = ordered.loc[(ordered.role == 'consolidator')
+        & (ordered.in_deg >= target['min_payers']) & (ordered.in_kzt >= target['min_in_kzt'])]
+    require((collection.rank_all <= target['max_rank_all']).all(),
+            'qualifying consolidator falls below configured review rank; re-evaluate weights for this dataset')
+    collection_ranks = [dict(gid=row.gid, rank_all=int(row.rank_all), priority_score=float(row.priority_score))
+                        for row in collection.itertuples(index=False)]
     top_five = []
     for row in first_twenty.head(5).itertuples(index=False):
         top_five.append(dict(rank=int(row.rank), gid=row.gid, role=row.role,
@@ -143,4 +161,5 @@ def validate_semantics(raw_nodes, raw_edges, nodes, top, clusters):
     return dict(semantic_nodes_checked=len(nodes), coordinator_flow_witnesses_checked=coordinator_count,
                 role_distribution={role: int(count) for role, count in nodes.role.value_counts().items()},
                 top20_peripheral=int((first_twenty.role == 'peripheral').sum()),
-                top20_seed=sum(bool(seeds[gid]) for gid in first_twenty.gid), top5=top_five)
+                top20_seed=sum(bool(seeds[gid]) for gid in first_twenty.gid), top5=top_five,
+                consolidator_review_ranks=collection_ranks)

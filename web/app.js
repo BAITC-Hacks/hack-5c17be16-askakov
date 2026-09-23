@@ -1,11 +1,11 @@
 'use strict';
 const roles = {
-  consolidator: {label: 'Консолидация', color: '#e7b971'},
-  transit: {label: 'Транзит', color: '#68bce0'},
-  distributor: {label: 'Распределение', color: '#b5ef79'},
-  terminal: {label: 'Конечный получатель', color: '#dc8baf'},
-  coordinator: {label: 'Координация', color: '#ad99ec'},
-  peripheral: {label: 'Периферия', color: '#637785'},
+  consolidator: {label: 'Консолидация', color: '#f0b768'},
+  transit: {label: 'Транзит', color: '#6ec8ec'},
+  distributor: {label: 'Распределение', color: '#c3e86b'},
+  terminal: {label: 'Конечный получатель', color: '#e392b5'},
+  coordinator: {label: 'Координация', color: '#b7a3f5'},
+  peripheral: {label: 'Периферия', color: '#64798a'},
 };
 const $ = id => document.getElementById(id);
 const number = n => Number(n).toLocaleString('ru-RU', {maximumFractionDigits: 0});
@@ -89,7 +89,6 @@ canvas.addEventListener('pointercancel',()=>{drag=null;canvas.style.cursor='grab
 new ResizeObserver(()=>{width=canvas.clientWidth;height=canvas.clientHeight;const dpr=window.devicePixelRatio||1;canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);if(data)fit();}).observe(canvas);
 async function init(){
   const response=await fetch('/api/graph');if(!response.ok)throw new Error(`HTTP ${response.status}`);data=await response.json();edgeByKey=new Map(data.edges.map(e=>[edgeKey(e),e]));byId=new Map(data.nodes.map(n=>[n.gid,n]));const m=data.meta;
-  $('period').textContent=`${m.period_start} — ${m.period_end}`;
   $('stats').innerHTML=stat('Участники сети',number(m.n_nodes),`${m.n_seed} исходных клиентов · seed`)+stat('Денежные связи',number(m.n_edges),`${number(m.n_transactions)} транзакций`)+stat('Наблюдаемый оборот',(m.total_kzt/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн ₸','Сумма переводов, не уникальные деньги')+stat('Кластеры',number(m.n_clusters),`${m.n_components} компонент с изолятами`)+stat('Граница наблюдения',number(m.n_truncated),'Узлов с неизвестными исходящими');
   $('ranking').innerHTML=data.top.map(t=>{const n=byId.get(t.gid);return `<button class="rank-item" data-gid="${n.gid}"><span class="rank-number">${String(t.rank).padStart(2,'0')}</span><span class="rank-info"><strong>Клиент ${n.gid}</strong><small style="color:${roles[n.role].color}">${roles[n.role].label}</small></span><span class="rank-score">${n.priority_score.toFixed(2)}<span class="score-bar"><span style="width:${n.priority_score*100}%"></span></span></span></button>`;}).join('');
   $('ranking').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>select(b.dataset.gid)));

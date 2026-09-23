@@ -28,10 +28,12 @@
     "peripheral": 0.2
   },
   "priority": {
-    "weights": {"turnover": 0.25, "seed_reach": 0.25, "betweenness": 0.2, "degree": 0.2, "pagerank": 0.1},
+    "weights": {"turnover": 0.25, "seed_reach": 0.25, "betweenness": 0.0, "degree": 0.4, "pagerank": 0.1},
     "external_peripheral_multiplier": 0.5,
     "seed_multiplier": 0.7,
-    "top_n": 50
+    "seed_discount_roles": ["peripheral", "terminal", "transit"],
+    "top_n": 50,
+    "consolidator_review_target": {"min_payers": 8, "min_in_kzt": 500000, "max_rank_all": 50}
   },
   "external_funds": {"max_pass_through": 1.2, "min_out_kzt": 20000},
   "graph": {"max_hops": 4, "random_seed": 42, "louvain_resolution": 1, "betweenness_samples": 256, "layout_iterations": 35},

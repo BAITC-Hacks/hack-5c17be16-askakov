@@ -164,16 +164,16 @@ class AuditSemanticsTests(unittest.TestCase):
         self.assertEqual(reduced.role, 'peripheral')
         self.assertAlmostEqual(reduced.priority_score, full.priority_score * .5, delta=1e-6)
 
-    def test_seed_priority_is_seventy_percent_and_why_explains_it(self):
+    def test_seed_distributor_keeps_priority_and_why_explains_it(self):
         transfers = [(1, recipient, 25000.) for recipient in range(10, 18)]
         original = self.features(transfers, seeds=(99,), extra_nodes=(99,)).loc['1']
         seed = self.features(transfers, seeds=(1, 99), extra_nodes=(99,)).loc['1']
         self.assertEqual(original.role, 'distributor')
         self.assertEqual(seed.role, 'distributor')
-        self.assertAlmostEqual(seed.priority_score, original.priority_score * .7, delta=1e-6)
+        self.assertAlmostEqual(seed.priority_score, original.priority_score, delta=1e-6)
         payload, roles, top = self.run_fixture(transfers, seeds=(1, 99), extra_nodes=(99,))
         why = top.loc[top.gid == '1', 'why'].iloc[0]
-        self.assertIn('уже известен — приоритет снижен', why.lower())
+        self.assertIn('уже известен правоохранителям, но является точкой сбора/раздачи — ключ к уровню выше', why.lower())
 
     def run_fixture(self, transfers, **kwargs):
         with tempfile.TemporaryDirectory() as temporary:
