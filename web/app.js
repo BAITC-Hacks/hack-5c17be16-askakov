@@ -46,8 +46,6 @@ function fit() {
 function radius(n) {return selected === n.gid ? 9 : 2.5 + 4 * n.priority_score;}
 function draw() {
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = '#27323a';
-  for (let x = 12; x < width; x += 24) for (let y = 12; y < height; y += 24) {ctx.beginPath();ctx.arc(x,y,.6,0,Math.PI*2);ctx.fill();}
   drawEdges();
   for (const n of nodes) {
     const p=coordinates(n), r=radius(n);
@@ -89,7 +87,6 @@ canvas.addEventListener('pointercancel',()=>{drag=null;canvas.style.cursor='grab
 new ResizeObserver(()=>{width=canvas.clientWidth;height=canvas.clientHeight;const dpr=window.devicePixelRatio||1;canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);if(data)fit();}).observe(canvas);
 async function init(){
   const response=await fetch('/api/graph');if(!response.ok)throw new Error(`HTTP ${response.status}`);data=await response.json();edgeByKey=new Map(data.edges.map(e=>[edgeKey(e),e]));byId=new Map(data.nodes.map(n=>[n.gid,n]));const m=data.meta;
-  $('period').textContent=m.period_start && m.period_end ? `Период данных: ${displayDate(m.period_start)} — ${displayDate(m.period_end)}` : 'Период данных не определён';
   $('stats').innerHTML=stat('Участники сети',number(m.n_nodes),`${m.n_seed} исходных клиентов · seed`)+stat('Денежные связи',number(m.n_edges),`${number(m.n_transactions)} транзакций`)+stat('Наблюдаемый оборот',(m.total_kzt/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн ₸','Сумма переводов, не уникальные деньги')+stat('Кластеры',number(m.n_clusters),`${m.n_components} компонент с изолятами`)+stat('Граница наблюдения',number(m.n_truncated),'Узлов с неизвестными исходящими');
   $('ranking').innerHTML=data.top.map(t=>{const n=byId.get(t.gid);return `<button class="rank-item" data-gid="${n.gid}"><span class="rank-number">${String(t.rank).padStart(2,'0')}</span><span class="rank-info"><strong aria-label="Клиент ${n.gid}">${n.gid}</strong><small style="color:${roles[n.role].color}">${roles[n.role].label}</small></span><span class="rank-score">${n.priority_score.toFixed(2)}<span class="score-bar"><span style="width:${n.priority_score*100}%"></span></span></span></button>`;}).join('');
   $('ranking').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>select(b.dataset.gid)));

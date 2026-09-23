@@ -17,8 +17,6 @@ with sync_playwright() as p:
     page.wait_for_selector('.rank-item')
     assert page.locator('.rank-item').count() == 50
     payload = page.request.get('http://127.0.0.1:8000/api/graph').json()
-    for date in (payload['meta']['period_start'], payload['meta']['period_end']):
-        assert '.'.join(reversed(date.split('-'))) in page.locator('#period').inner_text()
     # Gid из проверки приоритетов: поиск не должен терять последние цифры.
     for gid in ('100000003684369100', '100000005382566100', '100000004962193100', '100000004486525100'):
         page.locator('#gid').fill(gid)
@@ -150,5 +148,5 @@ with sync_playwright() as p:
             assert not download.value.failure()
         page.locator('.exports summary').click()
     assert not errors, errors
-    print('Browser PASS: 3 arbitrary and 4 tracked gids; visible period; four-hop directed path, seed switching, canvas edge click, exact transaction totals/dates, isolated seed; CSV download; full gids and export menu at 12 widths (320–1920px); no JavaScript errors.')
+    print('Browser PASS: 3 arbitrary and 4 tracked gids; four-hop directed path, seed switching, canvas edge click, exact transaction totals/dates, isolated seed; CSV download; full gids and export menu at 12 widths (320–1920px); no JavaScript errors.')
     browser.close()
