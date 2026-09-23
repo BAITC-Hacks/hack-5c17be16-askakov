@@ -1,0 +1,41 @@
+{
+  "roles": {
+    "consolidator_min_payers": 5,
+    "distributor_min_recipients": 8,
+    "distributor_large_fanout": 60,
+    "coordinator_min_payers": 3,
+    "coordinator_min_recipients": 3,
+    "coordinator_min_neighbors": 2,
+    "coordinator_min_flow_share": 0.2,
+    "transit_min_pass_through": 0.8,
+    "transit_max_pass_through": 1.2,
+    "terminal_max_pass_through": 0.2,
+    "terminal_min_in_kzt": 20000
+  },
+  "role_scores": {
+    "coordinator_base": 0.65,
+    "coordinator_bridge_bonus": 0.15,
+    "distributor_base": 0.6,
+    "distributor_bonus": 0.3,
+    "distributor_saturation_recipients": 40,
+    "consolidator_base": 0.6,
+    "consolidator_bonus": 0.3,
+    "consolidator_saturation_payers": 15,
+    "truncated_consolidator_multiplier": 0.7,
+    "transit_base": 0.65,
+    "transit_temporal_bonus": 0.15,
+    "terminal": 0.55,
+    "peripheral": 0.2
+  },
+  "priority": {
+    "weights": {"turnover": 0.25, "seed_reach": 0.25, "betweenness": 0.2, "degree": 0.2, "pagerank": 0.1},
+    "external_peripheral_multiplier": 0.5,
+    "seed_multiplier": 0.7,
+    "top_n": 50
+  },
+  "external_funds": {"max_pass_through": 1.2, "min_out_kzt": 20000},
+  "graph": {"max_hops": 4, "random_seed": 42, "louvain_resolution": 1, "betweenness_samples": 256, "layout_iterations": 35},
+  "temporal": {"window_days": 2},
+  "clusters": {"description_top_nodes": 3, "top_gids_count": 5},
+  "output": {"evidence_max_chars": 200}
+}

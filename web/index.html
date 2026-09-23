@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Граф денег · AML workspace</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><a class="brand" href="/">◈ <span>Граф денег<small>FINANCIAL NETWORK INTELLIGENCE</small></span></a><div class="header-right"><span class="status">● Локальный анализ</span><span id="period"></span></div></header>
+<main>
+  <section class="intro"><div><span class="eyebrow">ОБЗОР РАССЛЕДОВАНИЯ / 01</span><h1>За переводами — связи.</h1><p>Исследуйте потоки, находите точки консолидации и определяйте приоритет проверки.</p></div><details class="exports"><summary>↓ Выгрузить результаты</summary><div><a href="/download/nodes_roles.csv">Все узлы и роли · CSV</a><a href="/download/clusters.csv">Кластеры · CSV</a><a href="/download/top_nodes.csv">Приоритет проверки · CSV</a></div></details></section>
+  <section class="stats" id="stats" aria-label="Показатели сети"></section>
+  <div class="notice"><span>ⓘ</span><p><strong>Граф показывает часть финансовых потоков.</strong> Только внутрибанковские переводы от 5 000 ₸. У границы 4-го колена исходящие неизвестны. Роли — гипотезы для проверки.</p></div>
+  <section class="workspace">
+    <aside class="panel ranking"><div class="panel-title"><h2>Приоритет проверки</h2><span class="badge">ТОП 50</span></div><p class="section-note">Структурная значимость в доступной сети</p><div id="ranking" class="rank-list"></div></aside>
+    <section class="panel graph-panel"><div class="panel-title"><h2>Карта денежных потоков</h2><span id="graph-count" class="muted"></span></div><div class="toolbar"><form id="search"><label class="sr-only" for="gid">Идентификатор клиента</label><input id="gid" placeholder="Найти по gid…" autocomplete="off"><button type="submit">Найти</button></form><label><span class="sr-only">Кластер</span><select id="cluster"><option value="">Все кластеры</option></select></label><button id="reset" title="Показать всю сеть">Вся сеть</button></div><div id="search-message" role="status"></div><div id="path-controls" class="path-controls" hidden><label for="path-seed">Исходный seed</label><select id="path-seed" aria-label="Исходный seed для цепочки"></select><button id="show-path" type="button">Показать путь</button><button id="show-neighbors" type="button">Связи узла</button><p id="path-message" role="status"></p></div><div class="canvas-wrap"><canvas id="graph" aria-label="Интерактивный граф переводов. Выберите узел через поиск или список приоритетов."></canvas><div class="graph-hint">Колесо — масштаб · перетаскивание — перемещение · клик по узлу или связи — детали</div><div class="zoom"><button id="zoom-in" aria-label="Увеличить">+</button><button id="zoom-out" aria-label="Уменьшить">−</button></div></div><div id="legend" class="legend"></div></section>
+    <aside class="panel detail" id="detail"><div class="empty">Выберите узел на графе или в списке приоритетов</div></aside>
+  </section>
+  <section id="path-summary" class="panel path-summary" hidden aria-label="Цепочка от seed"></section>
+  <section id="transfer-panel" class="panel transfer-panel" hidden aria-label="Переводы по выбранной связи"></section>
+  <section class="panel clusters"><div class="panel-title"><h2>Структура сообществ</h2><span class="muted">Нажмите на строку, чтобы открыть кластер</span></div><div class="table-scroll"><table><thead><tr><th>Кластер</th><th>Узлы</th><th>Seed</th><th>Внутренний оборот</th><th>Гипотеза</th></tr></thead><tbody id="clusters"></tbody></table></div></section>
+  <footer><span>ГРАФ ДЕНЕГ · HACKALEM AI</span><span id="runtime">Подготовка результатов…</span></footer>
+</main>
+<div id="error" role="alert" hidden></div><script src="/investigation.js"></script><script src="/app.js"></script>
+</body></html>
